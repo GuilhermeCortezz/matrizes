@@ -14,8 +14,8 @@
     <div class="container mt-5">
         <h1>Calculadora de Matrizes</h1>
         <div id="matrixInput" class="mt-4"></div>
-        <button class="btn btn-primary mt-2" onclick="addMatrix()">Adicionar Matriz</button>
-        <button class="btn btn-danger mt-2" onclick="removeMatrix()">Remover Matriz</button>
+        <button class="btn" onclick="addMatrix()">Adicionar Matriz</button>
+        <button class="btn" onclick="removeMatrix()">Remover Matriz</button>
         <div class="mt-4">
             <div class="select-operation">
                 <label for="operation">Escolha a operação:</label>
@@ -33,15 +33,17 @@
             <h2>Análise de Matriz</h2>
             <textarea class="form-control mb-2" id="matrixInputType" rows="4"
                 placeholder="Digite a matriz separando os elementos por espaço e as linhas por nova linha. Ex: &#10;1 2 3&#10;4 5 6&#10;7 8 9"></textarea>
-            <button class="btn btn-primary" onclick="checkMatrixType()">Verificar Tipo</button>
-            <button class="btn btn-secondary ml-2" onclick="calculateInverse()">Calcular Inversa</button>
-            <button class="btn btn-info ml-2" onclick="transposeCurrentMatrix()">Matriz Transposta</button>
-            <button class="btn btn-warning ml-2" onclick="negativeCurrentMatrix()">Matriz Oposta</button>
+            <button class="btn" onclick="checkMatrixType()">Verificar Tipo</button>
+            <button class="btn" onclick="calculateInverse()">Calcular Inversa</button>
+            <button class="btn" onclick="transposeCurrentMatrix()">Matriz Transposta</button>
+            <button class="btn" onclick="negativeCurrentMatrix()">Matriz Oposta</button>
+            <button class="btn" onclick="showDiagonals()">Mostrar Diagonais</button>
         </div>
         <div id="typeResult" class="mt-4"></div>
         <div id="inverseResult" class="mt-4"></div>
         <div id="transposeResult" class="mt-4"></div>
         <div id="negativeResult" class="mt-4"></div>
+        <div id="diagonalResult"></div>
     </div>
     <script src="script.js"></script>
 </body>

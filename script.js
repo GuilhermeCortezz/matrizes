@@ -79,12 +79,15 @@ function formatMatrix(matrix) {
     return '<pre>' + matrix.map(row => row.join(' ')).join('\n') + '</pre>';
 }
 
-// Função para somar matrizes
 function addMatrices(matrices) {
-    const [rows, cols] = [matrices[0].length, matrices[0][0].length];
+    const firstMatrix = matrices[0];
+    const [rows, cols] = [firstMatrix.length, firstMatrix[0].length];
     let result = Array.from({ length: rows }, () => Array(cols).fill(0));
 
     for (let matrix of matrices) {
+        if (matrix.length !== rows || matrix[0].length !== cols) {
+            return 'Erro: As matrizes devem ter o mesmo tamanho para realizar a operação de soma.';
+        }
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
                 result[i][j] += matrix[i][j];
@@ -94,19 +97,15 @@ function addMatrices(matrices) {
     return result;
 }
 
-// Função para subtrair matrizes
 function subtractMatrices(matrices) {
-    const [rows, cols] = [matrices[0].length, matrices[0][0].length];
+    const firstMatrix = matrices[0];
+    const [rows, cols] = [firstMatrix.length, firstMatrix[0].length];
     let result = Array.from({ length: rows }, () => Array(cols).fill(0));
 
-    for (let i = 0; i < rows; i++) {
-        for (let j = 0; j < cols; j++) {
-            result[i][j] = matrices[0][i][j];
+    for (let matrix of matrices) {
+        if (matrix.length !== rows || matrix[0].length !== cols) {
+            return 'Erro: As matrizes devem ter o mesmo tamanho para realizar a operação de subtração.';
         }
-    }
-
-    for (let k = 1; k < matrices.length; k++) {
-        let matrix = matrices[k];
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
                 result[i][j] -= matrix[i][j];
@@ -125,7 +124,7 @@ function multiplyMatrices(matrices) {
         let [rowsB, colsB] = [matrix.length, matrix[0].length];
 
         if (colsA !== rowsB) {
-            return 'Erro: As matrizes não podem ser multiplicadas.';
+            return 'Erro: O número de colunas de uma matriz deve ser igual ao número de linhas da outra matriz para multiplicação.';
         }
 
         let newResult = Array.from({ length: rowsA }, () => Array(colsB).fill(0));
@@ -231,10 +230,14 @@ function invertMatrix(matrix) {
 function formatFraction(fraction) {
     const formatted = math.format(fraction, { fraction: 'ratio' });
     const [numerator, denominator] = formatted.split('/');
+
+    // Verifica se o denominador é '1' para evitar exibir o traço em casos simples
     if (denominator === '1') {
         return numerator;
     }
-    return `<span class="fraction"><span class="numerator">${numerator}</span><span class="denominator">${denominator}</span></span>`;
+
+    // Retorna a fração formatada com o traço entre o numerador e o denominador
+    return `<span class="fraction">${numerator}<span class="fraction-line"></span>${denominator}</span>`;
 }
 
 // Função para calcular a transposição da matriz atualmente exibida
@@ -257,4 +260,45 @@ function negativeCurrentMatrix() {
     // Calcula a matriz oposta
     const negativeMatrixResult = negativeMatrix(matrix);
     negativeResult.innerHTML = `<h5>Matriz Oposta (Inversa Aditiva):</h5>${formatMatrix(negativeMatrixResult)}`;
+}
+
+// Função para mostrar a diagonal principal e secundária da matriz
+function showDiagonals() {
+    const matrixInput = document.getElementById('matrixInputType').value;
+    const matrix = parseMatrix(matrixInput);
+    const diagonalResult = document.getElementById('diagonalResult');
+
+    // Calcula a diagonal principal
+    const principalDiagonal = getPrincipalDiagonal(matrix);
+    // Calcula a diagonal secundária
+    const secondaryDiagonal = getSecondaryDiagonal(matrix);
+
+    // Exibe as diagonais na página
+    diagonalResult.innerHTML = `<h5>Diagonal Principal:</h5>${formatArray(principalDiagonal)}<br>`;
+    diagonalResult.innerHTML += `<h5>Diagonal Secundária:</h5>${formatArray(secondaryDiagonal)}`;
+}
+
+// Função para obter a diagonal principal da matriz
+function getPrincipalDiagonal(matrix) {
+    const diagonal = [];
+    const n = matrix.length;
+    for (let i = 0; i < n; i++) {
+        diagonal.push(matrix[i][i]);
+    }
+    return diagonal;
+}
+
+// Função para obter a diagonal secundária da matriz
+function getSecondaryDiagonal(matrix) {
+    const diagonal = [];
+    const n = matrix.length;
+    for (let i = 0; i < n; i++) {
+        diagonal.push(matrix[i][n - 1 - i]);
+    }
+    return diagonal;
+}
+
+// Função para formatar um array para exibição na página
+function formatArray(array) {
+    return `<pre>${array.join(' ')}</pre>`;
 }
