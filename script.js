@@ -16,7 +16,7 @@ function addMatrix() {
     matrixCount++;
     const matrixInputDiv = document.getElementById('matrixInput');
     const newMatrixInput = `
-        <textarea class="form-control mb-2" id="matrix${matrixCount}Input" rows="4" placeholder="Digite a matriz ${matrixCount} separando os elementos por espaço e as linhas por nova linha. Ex: &#10;1 2 3&#10;4 5 6&#10;7 8 9"></textarea>
+        <textarea class="form-control mb-2" id="matrix${matrixCount}Input" rows="4" placeholder="Digite a matriz ${matrixCount}"></textarea>
     `;
     matrixInputDiv.insertAdjacentHTML('beforeend', newMatrixInput);
 }
@@ -60,7 +60,9 @@ function calculateMatrices() {
         result = subtractMatrices(matrices);
     } else if (operation === 'multiplicacao') {
         result = multiplyMatrices(matrices);
-    }
+    } else if (operation === 'divisao') {
+        result = 'Erro: A divisão direta de matrizes não existe. Considere usar a multiplicação pela inversa.';
+    } 
 
     // Exibe o resultado formatado na página
     resultDiv.innerHTML = `<h5>Resultado da ${operation.charAt(0).toUpperCase() + operation.slice(1)}</h5>`;
@@ -70,27 +72,29 @@ function calculateMatrices() {
 
 // Função para converter uma string de entrada em uma matriz numérica
 function parseMatrix(input) {
-    return input.trim().split('\n').map(row => row.trim().split(' ').map(Number));
+    return input.trim().split('\n').map(row => row.trim().split(' ').map(cell => math.fraction(cell)));
 }
-
 // Função para formatar uma matriz para exibição na página
 function formatMatrix(matrix) {
     if (typeof matrix === 'string') return `<p class="text-danger">${matrix}</p>`;
-    return '<pre>' + matrix.map(row => row.join(' ')).join('\n') + '</pre>';
+    return '<pre>' + matrix.map(row => row.map(cell => formatFraction(cell)).join(' ')).join('\n') + '</pre>';
 }
 
 function addMatrices(matrices) {
-    const firstMatrix = matrices[0];
-    const [rows, cols] = [firstMatrix.length, firstMatrix[0].length];
-    let result = Array.from({ length: rows }, () => Array(cols).fill(0));
+    const [rows, cols] = [matrices[0].length, matrices[0][0].length];
 
     for (let matrix of matrices) {
         if (matrix.length !== rows || matrix[0].length !== cols) {
-            return 'Erro: As matrizes devem ter o mesmo tamanho para realizar a operação de soma.';
+            return 'Erro: As matrizes devem ter o mesmo tamanho para serem somadas.';
         }
+    }
+
+    let result = Array.from({ length: rows }, () => Array(cols).fill(math.fraction(0)));
+
+    for (let matrix of matrices) {
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
-                result[i][j] += matrix[i][j];
+                result[i][j] = math.add(result[i][j], matrix[i][j]);
             }
         }
     }
@@ -98,17 +102,27 @@ function addMatrices(matrices) {
 }
 
 function subtractMatrices(matrices) {
-    const firstMatrix = matrices[0];
-    const [rows, cols] = [firstMatrix.length, firstMatrix[0].length];
-    let result = Array.from({ length: rows }, () => Array(cols).fill(0));
+    const [rows, cols] = [matrices[0].length, matrices[0][0].length];
 
     for (let matrix of matrices) {
         if (matrix.length !== rows || matrix[0].length !== cols) {
-            return 'Erro: As matrizes devem ter o mesmo tamanho para realizar a operação de subtração.';
+            return 'Erro: As matrizes devem ter o mesmo tamanho para serem subtraídas.';
         }
+    }
+
+    let result = Array.from({ length: rows }, () => Array(cols).fill(math.fraction(0)));
+
+    for (let i = 0; i < rows; i++) {
+        for (let j = 0; j < cols; j++) {
+            result[i][j] = matrices[0][i][j];
+        }
+    }
+
+    for (let k = 1; k < matrices.length; k++) {
+        let matrix = matrices[k];
         for (let i = 0; i < rows; i++) {
             for (let j = 0; j < cols; j++) {
-                result[i][j] -= matrix[i][j];
+                result[i][j] = math.subtract(result[i][j], matrix[i][j]);
             }
         }
     }
@@ -124,15 +138,15 @@ function multiplyMatrices(matrices) {
         let [rowsB, colsB] = [matrix.length, matrix[0].length];
 
         if (colsA !== rowsB) {
-            return 'Erro: O número de colunas de uma matriz deve ser igual ao número de linhas da outra matriz para multiplicação.';
+            return 'Erro: O número de colunas da matriz A deve ser igual ao número de linhas da matriz B para multiplicação.';
         }
 
-        let newResult = Array.from({ length: rowsA }, () => Array(colsB).fill(0));
+        let newResult = Array.from({ length: rowsA }, () => Array(colsB).fill(math.fraction(0)));
 
         for (let i = 0; i < rowsA; i++) {
             for (let j = 0; j < colsB; j++) {
-                for (let k = 0; k < colsA; k++) {
-                    newResult[i][j] += result[i][k] * matrix[k][j];
+                for (let l = 0; l < colsA; l++) {
+                    newResult[i][j] = math.add(newResult[i][j], math.multiply(result[i][l], matrix[l][j]));
                 }
             }
         }
@@ -158,10 +172,11 @@ function getMatrixType(matrix) {
 
     if (rows === 1) return 'Linha';
     if (cols === 1) return 'Coluna';
-    if (matrix.every(row => row.every(cell => cell === 0))) return 'Nula';
+    if (matrix.every(row => row.every(cell => cell.equals(math.fraction(0))))) return 'Nula';
     if (rows === cols) {
         if (isIdentity(matrix)) return 'Identidade';
-        if (isTriangular(matrix)) return 'Triangular';
+        const triangularType = isTriangular(matrix);
+        if (triangularType) return `Triangular ${triangularType}`;
         return 'Quadrada';
     }
     return 'Retangular';
@@ -172,8 +187,8 @@ function isIdentity(matrix) {
     const n = matrix.length;
     for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
-            if (i === j && matrix[i][j] !== 1) return false;
-            if (i !== j && matrix[i][j] !== 0) return false;
+            if (i === j && !matrix[i][j].equals(math.fraction(1))) return false;
+            if (i !== j && !matrix[i][j].equals(math.fraction(0))) return false;
         }
     }
     return true;
@@ -182,16 +197,19 @@ function isIdentity(matrix) {
 // Função para verificar se uma matriz é triangular
 function isTriangular(matrix) {
     const n = matrix.length;
-    let upper = true;
-    let lower = true;
+    let isUpper = true;
+    let isLower = true;
 
     for (let i = 0; i < n; i++) {
         for (let j = 0; j < n; j++) {
-            if (i > j && matrix[i][j] !== 0) upper = false;
-            if (i < j && matrix[i][j] !== 0) lower = false;
+            if (i > j && !matrix[i][j].equals(math.fraction(0))) isUpper = false;
+            if (i < j && !matrix[i][j].equals(math.fraction(0))) isLower = false;
         }
     }
-    return upper || lower;
+
+    if (isUpper && !isLower) return 'Superior';
+    if (isLower && !isUpper) return 'Inferior';
+    return null;
 }
 
 // Função para calcular a inversa de uma matriz
@@ -218,26 +236,23 @@ function calculateInverse() {
 // Função para calcular a inversa de uma matriz usando a biblioteca math.js
 function invertMatrix(matrix) {
     try {
-        const inv = math.inv(math.matrix(matrix));
-        const fractionInv = inv.map(value => math.fraction(value));
-        return fractionInv.valueOf().map(row => row.map(cell => formatFraction(cell)));
-    } catch (error) {
+        const inverse = math.inv(matrix);
+        return inverse.map(row => row.map(cell => math.fraction(cell)));
+    } catch (e) {
         return null;
     }
 }
 
 // Função para formatar frações na exibição da matriz
 function formatFraction(fraction) {
-    const formatted = math.format(fraction, { fraction: 'ratio' });
-    const [numerator, denominator] = formatted.split('/');
+    const numerator = fraction.n;
+    const denominator = fraction.d;
 
-    // Verifica se o denominador é '1' para evitar exibir o traço em casos simples
-    if (denominator === '1') {
-        return numerator;
+    if (denominator === 1) {
+        return `<span class="fraction">${numerator}</span>`;
+    } else {
+        return `<span class="fraction"><span class="numerator">${numerator}</span><span class="denominator">${denominator}</span></span>`;
     }
-
-    // Retorna a fração formatada com o traço entre o numerador e o denominador
-    return `<span class="fraction">${numerator}<span class="fraction-line"></span>${denominator}</span>`;
 }
 
 // Função para calcular a transposição da matriz atualmente exibida
@@ -268,37 +283,73 @@ function showDiagonals() {
     const matrix = parseMatrix(matrixInput);
     const diagonalResult = document.getElementById('diagonalResult');
 
-    // Calcula a diagonal principal
-    const principalDiagonal = getPrincipalDiagonal(matrix);
-    // Calcula a diagonal secundária
-    const secondaryDiagonal = getSecondaryDiagonal(matrix);
-
-    // Exibe as diagonais na página
-    diagonalResult.innerHTML = `<h5>Diagonal Principal:</h5>${formatArray(principalDiagonal)}<br>`;
-    diagonalResult.innerHTML += `<h5>Diagonal Secundária:</h5>${formatArray(secondaryDiagonal)}`;
-}
-
-// Função para obter a diagonal principal da matriz
-function getPrincipalDiagonal(matrix) {
-    const diagonal = [];
-    const n = matrix.length;
-    for (let i = 0; i < n; i++) {
-        diagonal.push(matrix[i][i]);
+    if (matrix.length !== matrix[0].length) {
+        diagonalResult.innerHTML = '<p class="text-danger">A matriz deve ser quadrada para mostrar as diagonais.</p>';
+        return;
     }
-    return diagonal;
-}
 
-// Função para obter a diagonal secundária da matriz
-function getSecondaryDiagonal(matrix) {
-    const diagonal = [];
-    const n = matrix.length;
-    for (let i = 0; i < n; i++) {
-        diagonal.push(matrix[i][n - 1 - i]);
-    }
-    return diagonal;
+    const principalDiagonal = matrix.map((row, i) => row[i]);
+    const secondaryDiagonal = matrix.map((row, i) => row[row.length - 1 - i]);
+
+    diagonalResult.innerHTML = `<h5>Diagonais:</h5>`;
+    diagonalResult.innerHTML += `<p>Diagonal Principal: ${principalDiagonal.map(cell => math.format(cell, { fraction: 'ratio' })).join(' ')}</p>`;
+    diagonalResult.innerHTML += `<p>Diagonal Secundária: ${secondaryDiagonal.map(cell => math.format(cell, { fraction: 'ratio' })).join(' ')}</p>`;
 }
 
 // Função para formatar um array para exibição na página
 function formatArray(array) {
     return `<pre>${array.join(' ')}</pre>`;
+}
+
+// Função para gerar uma matriz identidade do tamanho especificado
+function generateIdentityMatrix() {
+    const sizeInput = document.getElementById('identitySize').value;
+    const size = parseInt(sizeInput);
+
+    if (isNaN(size) || size <= 0) {
+        document.getElementById('identityResult').innerHTML = '<p class="text-danger">Por favor, insira um número válido maior que 0.</p>';
+        return;
+    }
+
+    // Cria a matriz identidade
+    const matrix = Array.from({ length: size }, (_, i) =>
+        Array.from({ length: size }, (_, j) => i === j ? math.fraction(1) : math.fraction(0))
+    );
+
+    // Exibe a matriz identidade
+    document.getElementById('identityResult').innerHTML = `<h5>Matriz Identidade ${size} x ${size}:</h5>${formatMatrix(matrix)}`;
+}
+
+function generateTriangularMatrix() {
+    const sizeInput = document.getElementById('triangularSize').value;
+    const size = parseInt(sizeInput);
+    const type = document.getElementById('triangularType').value;
+
+    if (isNaN(size) || size <= 0) {
+        document.getElementById('triangularResult').value = 'Por favor, insira um número válido maior que 0.';
+        return;
+    }
+
+    // Cria a matriz triangular com zeros
+    const matrix = Array.from({ length: size }, (_, i) =>
+        Array.from({ length: size }, (_, j) => {
+            if (type === 'inferior') {
+                return j >= i ? '0' : ''; // Preenche com '0' nas posições válidas
+            } else {
+                return j <= i ? '0' : ''; // Preenche com '0' nas posições válidas
+            }
+        })
+    );
+
+    // Exibe a matriz triangular no textarea
+    document.getElementById('triangularResult').value = formatMatrixForTextarea(matrix);
+}
+
+function formatMatrixForTextarea(matrix) {
+    if (typeof matrix === 'string') return matrix;
+    return matrix.map(row => row.map(cell => formatCellForTextarea(cell)).join(' ')).join('\n');
+}
+
+function formatCellForTextarea(cell) {
+    return cell || ' '; // Retorna um espaço se a célula estiver vazia
 }

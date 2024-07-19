@@ -13,10 +13,15 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
+h1, h2, h4 {
     color: #e83e8c;
     /* rosa */
     text-align: center;
+}
+
+footer {
+    color: #fff;
+    background-color: #e83e8c;
 }
 
 .btn {
@@ -73,31 +78,28 @@ input.form-control:focus {
     /* vermelho */
 }
 
-.fraction {
-    display: inline-block;
-    vertical-align: middle;
-    text-align: center;
-    margin-left: 2px;
-    margin-right: 2px;
-}
+ .fraction {
+     display: inline-block;
+     text-align: center;
+     vertical-align: middle;
+ }
 
-.fraction .fraction-line {
+ .fraction>.numerator {
+     display: block;
+ }
+
+ .fraction>.denominator {
+     display: block;
+     border-top: 1px solid #000;
+ }
+
+/* .fraction .fraction-line {
     border-top: 1px solid #000;
     display: block;
     width: 100%;
     margin-top: 2px;
     margin-bottom: 2px;
-}
-
-.numerator {
-    display: block;
-    font-size: 12px;
-}
-
-.denominator {
-    display: block;
-    font-size: 12px;
-}
+} */
 
 /* Estilo para a seleção da operação */
 .select-operation {
