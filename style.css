@@ -129,3 +129,9 @@ input.form-control:focus {
 .select-operation button:focus {
     box-shadow: none;
 }
+
+.matrix-input {
+    width: 30px;
+    margin: 2px;
+    text-align: center;
+}

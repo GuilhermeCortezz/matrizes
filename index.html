@@ -61,7 +61,7 @@
                 <h4 class="card-title">Gerar Matriz Triangular</h4>
                 <div class="form-group">
                     <label for="triangularSize">Tamanho da Matriz:</label>
-                    <input type="number" id="triangularSize" class="form-control" min="1" value="">
+                    <input type="number" id="triangularSize" class="form-control" min="1" value="" placeholder="Digite o tamanho da matriz (n x n)">
                 </div>
         
                 <div class="form-group">
@@ -73,13 +73,23 @@
                 </div>
         
                 <button onclick="generateTriangularMatrix()" class="btn btn-primary">Gerar Matriz Triangular</button>
+
                 <br><br>
                 <h5 class="card-title">Matriz Triangular:</h5>
-                <textarea id="triangularResult" class="form-control" rows="10"
-                    placeholder="A matriz triangular aparecerá aqui..."></textarea>
+                <div id="triangularMatrix" class="mb-3"></div>
             </div>
         </div>
         
+        <div class="select-operation">
+            <h2>Multiplicar Matriz por um valor</h2>
+            <textarea class="form-control mb-2" id="matrixInputMultiplication" rows="4"
+                placeholder="Digite a matriz separando os elementos por espaço e as linhas por nova linha. Ex: &#10;1 2 3&#10;4 5 6&#10;7 8 9"></textarea>
+            <label for="multiplicationValue">Valor multiplicador:</label>
+            <input type="number" id="multiplicationValue" class="form-control mb-2"
+                placeholder="Digite o valor para multiplicar a matriz">
+            <button class="btn btn-primary" onclick="multiplyMatrixByValue()">Multiplicar</button>
+        </div>
+        <div id="multiplicationResult" class="mt-4"></div>
 
     </div>
     <footer class="text-center mt-5">

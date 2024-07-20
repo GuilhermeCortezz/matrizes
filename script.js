@@ -5,7 +5,7 @@ function transposeMatrix(matrix) {
 
 // Função para calcular a matriz oposta (inversa aditiva)
 function negativeMatrix(matrix) {
-    return matrix.map(row => row.map(cell => -cell));
+    return matrix.map(row => row.map(cell => math.multiply(cell, -1)));
 }
 
 // Contador de matrizes adicionadas
@@ -292,8 +292,8 @@ function showDiagonals() {
     const secondaryDiagonal = matrix.map((row, i) => row[row.length - 1 - i]);
 
     diagonalResult.innerHTML = `<h5>Diagonais:</h5>`;
-    diagonalResult.innerHTML += `<p>Diagonal Principal: ${principalDiagonal.map(cell => math.format(cell, { fraction: 'ratio' })).join(' ')}</p>`;
-    diagonalResult.innerHTML += `<p>Diagonal Secundária: ${secondaryDiagonal.map(cell => math.format(cell, { fraction: 'ratio' })).join(' ')}</p>`;
+    diagonalResult.innerHTML += `<p>Diagonal Principal: ${principalDiagonal.map(cell => formatFraction(cell)).join(' ')}</p>`;
+    diagonalResult.innerHTML += `<p>Diagonal Secundária: ${secondaryDiagonal.map(cell => formatFraction(cell)).join(' ')}</p>`;
 }
 
 // Função para formatar um array para exibição na página
@@ -326,30 +326,49 @@ function generateTriangularMatrix() {
     const type = document.getElementById('triangularType').value;
 
     if (isNaN(size) || size <= 0) {
-        document.getElementById('triangularResult').value = 'Por favor, insira um número válido maior que 0.';
+        document.getElementById('triangularMatrix').innerHTML = 'Por favor, insira um número válido maior que 0.';
         return;
     }
 
-    // Cria a matriz triangular com zeros
-    const matrix = Array.from({ length: size }, (_, i) =>
-        Array.from({ length: size }, (_, j) => {
-            if (type === 'inferior') {
-                return j >= i ? '0' : ''; // Preenche com '0' nas posições válidas
+    // Cria a matriz triangular com inputs
+    const matrixDiv = document.getElementById('triangularMatrix');
+    matrixDiv.innerHTML = '';
+
+    for (let i = 0; i < size; i++) {
+        const rowDiv = document.createElement('div');
+        for (let j = 0; j < size; j++) {
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'matrix-input';
+
+            if (type === 'inferior' && j < i) {
+                input.disabled = false;
+                input.value = '';
+            } else if (type === 'superior' && j > i) {
+                input.disabled = false;
+                input.value = '';
             } else {
-                return j <= i ? '0' : ''; // Preenche com '0' nas posições válidas
+                input.value = '0';
             }
-        })
-    );
-
-    // Exibe a matriz triangular no textarea
-    document.getElementById('triangularResult').value = formatMatrixForTextarea(matrix);
+            rowDiv.appendChild(input);
+        }
+        matrixDiv.appendChild(rowDiv);
+    }
 }
 
-function formatMatrixForTextarea(matrix) {
-    if (typeof matrix === 'string') return matrix;
-    return matrix.map(row => row.map(cell => formatCellForTextarea(cell)).join(' ')).join('\n');
-}
+// Função para multiplicar uma matriz por um valor
+function multiplyMatrixByValue() {
+    const matrixInput = document.getElementById('matrixInputMultiplication').value;
+    const matrix = parseMatrix(matrixInput);
+    const value = parseFloat(document.getElementById('multiplicationValue').value);
+    const multiplicationResult = document.getElementById('multiplicationResult');
 
-function formatCellForTextarea(cell) {
-    return cell || ' '; // Retorna um espaço se a célula estiver vazia
+    if (isNaN(value)) {
+        multiplicationResult.innerHTML = '<p class="text-danger">Por favor, insira um valor numérico válido para multiplicar a matriz.</p>';
+        return;
+    }
+
+    // Multiplica a matriz pelo valor
+    const result = matrix.map(row => row.map(cell => math.multiply(cell, math.fraction(value))));
+    multiplicationResult.innerHTML = `<h5>Resultado da Multiplicação:</h5>${formatMatrix(result)}`;
 }
